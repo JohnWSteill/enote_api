@@ -1,0 +1,37 @@
+# Core dependencies - SDK agnostic packages useful for any Evernote API approach
+
+# HTTP client library - essential for any API work
+requests>=2.31.0
+
+# HTML/XML parsing - needed for ENML content processing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Markdown processing - for markdown ↔ ENML conversion
+markdown>=3.5.0
+markdownify>=0.11.0
+
+# Date/time handling - Evernote uses timestamps extensively  
+python-dateutil>=2.8.0
+
+# Configuration and environment management
+python-dotenv>=1.0.0
+
+# Development and testing tools
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.9.0
+flake8>=6.1.0
+
+# Jupyter for prototyping and exploration
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# Data manipulation - helpful for note analysis and processing
+pandas>=2.1.0
+
+# Logging and debugging
+loguru>=0.7.0
+
+# Type hints and validation
+pydantic>=2.4.0

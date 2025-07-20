@@ -28,10 +28,12 @@ Build a robust, testable Python module that can:
 
 ---
 
-### 📁 Phase 2: Project Bootstrap
-- [ ] Create a repo: `evernote-api-sandbox`
-- [ ] Add basic structure: `README.md`, `requirements.txt`, `notebooks/`, `src/`, `tests/`
-- [ ] Document use cases and desired capabilities
+### 📁 Phase 2: Project Bootstrap ✅ _(complete)_
+- [x] Create a repo: `evernote-api-sandbox`
+- [x] Add basic structure: `README.md`, `requirements.txt`, `notebooks/`, `src/`, `tests/`
+- [x] Document use cases and desired capabilities
+
+➡️ SDK-agnostic foundation ready for Phase 3
 
 ---
 
