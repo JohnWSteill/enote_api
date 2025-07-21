@@ -24,7 +24,7 @@ def test_src_package_import():
     src_path = Path(__file__).parent.parent / "src"
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
-    
+
     # This should not raise an ImportError
     import evernote_api  # noqa: F401
 
@@ -34,8 +34,9 @@ def test_version_defined():
     src_path = Path(__file__).parent.parent / "src"
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
-    
+
     import evernote_api
-    assert hasattr(evernote_api, '__version__')
+
+    assert hasattr(evernote_api, "__version__")
     assert isinstance(evernote_api.__version__, str)
     assert len(evernote_api.__version__) > 0
