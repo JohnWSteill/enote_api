@@ -15,12 +15,6 @@ def test_project_structure(project_root):
     assert (project_root / "README.md").exists()
 
 
-def test_src_package_import():
-    """Test that the src package can be imported."""
-    # Import path is automatically set up by conftest.py
-    import enote  # noqa: F401
-
-
 def test_version_defined():
     """Test that package version is defined."""
     # Import path is automatically set up by conftest.py
