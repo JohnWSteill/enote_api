@@ -13,10 +13,10 @@ A Python library providing a clean, SDK-agnostic interface to Evernote APIs, des
 ## 💡 **Intended Usage**
 
 ```python
-import enote_api
+import enote
 
 # Initialize with credentials
-my_notes = enote_api.Corpus(credentials)
+my_notes = enote.Corpus(credentials)
 
 # Core operations
 note_dict = my_notes.get_all_notes()  # {id: title, body, tags}
@@ -41,9 +41,9 @@ results = my_notes.query("notes about project management")
 ```
 ├── src/               # Core library code
 ├── notebooks/         # Jupyter notebooks for exploration and prototyping  
-├── tests/            # Unit and integration tests
-├── requirements.txt  # Core dependencies (SDK-agnostic)
-└── docs/            # Documentation and examples
+├── tests/             # Unit and integration tests
+├── requirements.txt   # Core dependencies (SDK-agnostic)
+└── docs/              # Documentation and examples
 ```
 
 ## 🚀 Getting Started
