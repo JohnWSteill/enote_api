@@ -9,13 +9,17 @@ import pytest
 import sys
 from pathlib import Path
 
+# Set up import path at module level so imports work
+src_path = Path(__file__).parent.parent / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
+
 
 @pytest.fixture(autouse=True)
 def setup_import_path():
     """Automatically add src to Python path for all tests."""
-    src_path = Path(__file__).parent.parent / "src"
-    if str(src_path) not in sys.path:
-        sys.path.insert(0, str(src_path))
+    # Path is already set up at module level, this is just for consistency
+    pass
 
 
 @pytest.fixture

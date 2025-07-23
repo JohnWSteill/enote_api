@@ -11,8 +11,10 @@ This package is designed to be SDK-agnostic, allowing for easy
 swapping between different Evernote API implementations.
 """
 
+from .corpus import Corpus
+
 __version__ = "0.1.0"
 __author__ = "John Steill"
 
-# Core module exports will be added as we develop the API
-__all__ = []
+# Core module exports
+__all__ = ["Corpus"]
