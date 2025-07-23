@@ -12,18 +12,19 @@ import enote
 class TestCorpusInit:
     """Test Corpus initialization and basic setup."""
 
-    def test_corpus_init_with_credentials(self):
-        """Test that Corpus initializes with credentials."""
-        credentials = {"dev_token": "fake_token", "sandbox": True}
+    @pytest.mark.parametrize(
+        "credentials",
+        [
+            {"dev_token": "fake_token", "sandbox": True},
+            {"api_key": "test_key"},
+            {"oauth_token": "oauth123", "sandbox": False},
+        ],
+    )
+    def test_corpus_init_stores_credentials(self, credentials):
+        """Test that Corpus initializes and stores credential formats."""
         corpus = enote.Corpus(credentials)
         assert corpus.credentials == credentials
         assert corpus._client is None  # Not initialized until SDK chosen
-
-    def test_corpus_init_stores_credentials(self):
-        """Test that credentials are properly stored."""
-        creds = {"api_key": "test_key"}
-        corpus = enote.Corpus(creds)
-        assert corpus.credentials == creds
 
 
 class TestCorpusReadOperations:
@@ -80,7 +81,7 @@ class TestCorpusWriteOperations:
         with pytest.raises(
             NotImplementedError, match="SDK implementation required"
         ):
-            mock_corpus.write_new_note("Test content")
+            mock_corpus.write_new_note("Test Title", "Test content")
 
     def test_overwrite_note_not_implemented(self, mock_corpus):
         """Test that overwrite_note raises NotImplementedError."""

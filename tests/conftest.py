@@ -15,13 +15,6 @@ if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
 
-@pytest.fixture(autouse=True)
-def setup_import_path():
-    """Automatically add src to Python path for all tests."""
-    # Path is already set up at module level, this is just for consistency
-    pass
-
-
 @pytest.fixture
 def project_root():
     """Return the project root directory."""

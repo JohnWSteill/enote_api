@@ -59,10 +59,13 @@ Thumbs.db
 
 # Environment variables and secrets
 .env
+.env.*
 .env.local
 .env.*.local
 *.key
 secrets.txt
+config/credentials.json
+**/api_keys.py
 
 # Evernote API credentials
 evernote_auth.txt

@@ -76,17 +76,17 @@ class Corpus:
 
     def write_new_note(
         self,
+        title: str,
         body: str,
         tags: Optional[List[str]] = None,
-        title: Optional[str] = None,
     ) -> str:
         """
         Create a new note.
 
         Args:
+            title: Note title
             body: Note content (Markdown or ENML)
             tags: List of tag strings
-            title: Note title (auto-generated if None)
 
         Returns:
             note_id: Unique identifier of created note
