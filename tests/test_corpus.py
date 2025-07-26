@@ -41,7 +41,7 @@ class TestCorpusReadOperations:
         notes = mock_corpus.get_all_notes(max_notes=5)
         assert isinstance(notes, dict)
         assert len(notes) <= 5
-        
+
     def test_get_all_notes_without_limit(self, mock_corpus):
         """Test that get_all_notes works without max_notes (returns all)."""
         # For now, let's test with a reasonable limit to avoid massive parsing

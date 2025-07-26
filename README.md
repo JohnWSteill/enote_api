@@ -1,62 +1,91 @@
-# Evernote API Sandbox
+# Evernote Corpus Extractor
 
-A Python library providing a clean, SDK-agnostic interface to Evernote APIs, designed for building knowledge management applications that work with large note collections.
+A Python utility for extracting and structuring Evernote note collections into GenAI-ready datasets. Designed to transform years of personal knowledge into structured corpora for AI applications, RAG systems, and intelligent agents.
 
 ## 🎯 Project Goals
 
-- **Read** notes from Evernote (title, body, tags, links, backlinks)
-- **Write/Update** notes with Markdown/ENML support  
-- **Manage** tags and internal note references
-- **Index and search** large note collections efficiently
-- **Provide clean abstractions** for knowledge management applications
+- **Extract** notes from Evernote ENEX exports with full metadata preservation
+- **Structure** large note collections into AI-consumable formats
+- **Preserve** semantic relationships (tags, timestamps, note connections)
+- **Enable** GenAI application development with personal knowledge bases
+- **Support** Future AI agent development
 
-## 💡 **Intended Usage**
+## 💡 **Current Usage**
 
 ```python
 import enote
 
-# Initialize with credentials
-my_notes = enote.Corpus(credentials)
+# Initialize with ENEX backup path
+corpus = enote.Corpus({"enex_path": "~/tmp/evernote_backup"})
 
-# Core operations
-note_dict = my_notes.get_all_notes()  # {id: title, body, tags}
-note = my_notes.get_note(note_id)
-new_id = my_notes.write_new_note(body, tags)
-my_notes.overwrite_note(note_id, body, tags)
-my_notes.delete_note(note_id)
+# Extract structured notes (respects memory limits)
+notes = corpus.get_all_notes(max_notes=100)
 
-# Query and search (future)
-results = my_notes.query("notes about project management")
+# Each note contains: title, body, tags, created, updated
+for note_id, note_data in notes.items():
+    print(f"Title: {note_data['title']}")
+    print(f"Tags: {note_data['tags']}")
+    print(f"Content: {note_data['body'][:200]}...")
 ```
 
 ## 🎯 Use Cases
 
-- **Knowledge Management**: Work with large collections of interconnected notes
-- **Content Analysis**: Extract insights from years of accumulated notes  
-- **Automation**: Programmatically organize and cross-reference content
-- **AI Integration**: Build intelligent agents that leverage personal knowledge bases
+- **RAG Systems**: Structure personal knowledge for retrieval-augmented generation
+- **AI Training Data**: Prepare curated datasets from personal note collections  
+- **Knowledge Graphs**: Extract semantic relationships between notes and concepts
+- **Executive AI Agents**: Build assistants with deep personal context
 
 ## 🏗️ Project Structure
 
 ```
-├── src/               # Core library code
-├── notebooks/         # Jupyter notebooks for exploration and prototyping  
-├── tests/             # Unit and integration tests
-├── requirements.txt   # Core dependencies (SDK-agnostic)
-└── docs/              # Documentation and examples
+├── src/enote/         # Core extraction library
+├── notebooks/         # Data analysis and development examples
+├── tests/             # Unit and integration tests  
+├── requirements.txt   # Core dependencies
+└── README.md         # This file
 ```
 
-## 🚀 Getting Started
+## 🛠️ Development Environment
 
-1. **Install Dependencies**
+- Python 3.13.5 (Homebrew on macOS Apple Silicon)
+- Virtual Environment: `~/venvs/VS_Code`
+- Tools: Jupyter, Black, Flake8, pytest
+- Data Source: ENEX exports from evernote-backup
+
+## 📊 Current Capabilities
+
+✅ **ENEX File Parsing** - Processes multiple notebook exports  
+✅ **Metadata Extraction** - Titles, tags, timestamps preserved  
+✅ **Memory Management** - Configurable note limits for large datasets  
+✅ **Test Coverage** - Verified with real note collection  
+🔄 **Content Cleaning** - ENML to plain text (in development)  
+🔄 **Export Formats** - JSON, Markdown, vector-ready (planned)
+
+---
+
+*This tool enables GenAI development with personal knowledge bases. See `notebooks/` for examples and `tests/` for usage patterns.*
+
+## � Data Setup
+
+1. **Export your Evernote data using evernote-backup:**
+   ```bash
+   # Install evernote-backup
+   brew install evernote-backup
+   
+   # Initialize and sync your account  
+   evernote-backup init-db
+   evernote-backup sync
+   
+   # Export to ENEX files
+   evernote-backup export ~/tmp/evernote_backup
+   ```
+
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Explore APIs** 
-   Check out `notebooks/` for SDK evaluation and prototyping
-
-3. **Run Tests**
+3. **Test the extraction:**
    ```bash
    pytest tests/
    ```
@@ -65,11 +94,11 @@ results = my_notes.query("notes about project management")
 
 - [x] Phase 1: Environment Setup
 - [x] Phase 2: Project Bootstrap  
-- [ ] Phase 3: SDK Evaluation & Selection (XYZ → Concrete SDK)
-- [ ] Phase 4: Core Corpus API (read operations)
-- [ ] Phase 5: Write Operations & Note Management
-- [ ] Phase 6: Search & Indexing Layer
-- [ ] Phase 7: Advanced Knowledge Management Features
+- [x] Phase 3: ENEX Parsing Implementation
+- [x] Phase 4: Core Read Operations (4,874 notes successfully parsed)
+- [ ] Phase 5: ENML Content Extraction & Cleaning
+- [ ] Phase 6: GenAI Export Formats (JSON, Markdown, Vector-ready)
+- [ ] Phase 7: BabyCoach MVP Integration
 
 ## 🛠️ Development Environment
 

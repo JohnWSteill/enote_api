@@ -4,7 +4,7 @@
 # - Set up project-specific virtual environment (.venv in project root)
 # - Document workspace environment setup best practices  
 # - Move project-specific packages out of global VS_Code venv
-# - Create VS Code workspace settings for Python interpreter
+# - Code workspace settings for Python interpreter
 # - Modify workspace environment so src is in path
 # - Add environment setup to README.md
 

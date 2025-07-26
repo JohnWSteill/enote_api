@@ -1,21 +1,23 @@
 # Notebooks Directory
 
-This directory contains Jupyter notebooks for:
+This directory contains Jupyter notebooks for corpus analysis and GenAI application development.
 
-## 📊 Exploration and Prototyping
-- **SDK Evaluation**: Compare different Evernote API libraries
-- **API Testing**: Experiment with authentication and basic operations  
-- **Data Analysis**: Explore note structures, tags, and relationships
-- **Format Conversion**: Test ENML ↔ Markdown transformations
+## 📊 Data Analysis & Development
+- **ENEX Parsing**: Explore note extraction and structure analysis
+- **Content Processing**: ENML cleaning and text extraction  
+- **Corpus Analytics**: Tag distributions, note relationships, temporal patterns
+- **GenAI Preparation**: Format conversion and export utilities
+
+## 📁 Current Notebooks
+
+- `test_enex_parsing.ipynb` - Validate ENEX parsing with real data
 
 ## 📁 Planned Notebooks
 
-- `01_sdk_comparison.ipynb` - Evaluate available Evernote SDKs
-- `02_authentication.ipynb` - Test API authentication methods
-- `03_read_operations.ipynb` - Explore reading notes and metadata
-- `04_content_parsing.ipynb` - ENML/HTML parsing and conversion
-- `05_write_operations.ipynb` - Create and update notes
-- `06_linking_analysis.ipynb` - Internal links and backlink discovery
+- `01_corpus_overview.ipynb` - Analyze your complete note collection
+- `02_content_cleaning.ipynb` - ENML to clean text conversion
+- `03_tag_analysis.ipynb` - Explore tag patterns and relationships  
+- `04_export_formats.ipynb` - Prepare data for GenAI applications
 
 ## 🔧 Setup
 

@@ -71,24 +71,24 @@ class Corpus:
         # Get the ENEX path from credentials
         enex_path = self.credentials.get("enex_path", "~/tmp/evernote_backup")
         enex_path = Path(enex_path).expanduser()
-        
+
         notes = {}
         note_count = 0
-        
+
         # Process each ENEX file in the directory
         for enex_file in enex_path.glob("*.enex"):
             logger.info(f"Processing {enex_file.name}")
-            
+
             # Parse the ENEX file
             try:
                 tree = ET.parse(enex_file)
                 root = tree.getroot()
-                
+
                 # Find all note elements
                 for note_elem in root.findall("note"):
                     if max_notes and note_count >= max_notes:
                         return notes
-                    
+
                     # Extract note data
                     note_data = self._parse_note_element(note_elem)
                     if note_data:
@@ -96,35 +96,35 @@ class Corpus:
                         note_id = f"note_{note_count:06d}"
                         notes[note_id] = note_data
                         note_count += 1
-                        
+
             except ET.ParseError as e:
                 logger.warning(f"Failed to parse {enex_file}: {e}")
                 continue
-                
+
         return notes
-    
+
     def _parse_note_element(self, note_elem) -> Optional[Dict[str, Any]]:
         """Parse a single note element from ENEX."""
         try:
             title = note_elem.find("title")
             title_text = title.text if title is not None else "Untitled"
-            
+
             created = note_elem.find("created")
             created_text = created.text if created is not None else ""
-            
+
             updated = note_elem.find("updated")
             updated_text = updated.text if updated is not None else ""
-            
+
             # Extract tags
             tags = []
             for tag_elem in note_elem.findall("tag"):
                 if tag_elem.text:
                     tags.append(tag_elem.text)
-            
+
             # Extract content (simplified for now)
             content_elem = note_elem.find("content")
             content = content_elem.text if content_elem is not None else ""
-            
+
             return {
                 "title": title_text,
                 "body": content,
@@ -132,7 +132,7 @@ class Corpus:
                 "created": created_text,
                 "updated": updated_text,
             }
-            
+
         except Exception as e:
             logger.error(f"Error parsing note: {e}")
             return None
