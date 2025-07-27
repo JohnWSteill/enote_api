@@ -1,8 +1,6 @@
 """
-Corpus class for managing collections of Evernote notes.
-
-This module provides the main interface for interacting with Evernote APIs,
-designed as a knowledge management abstraction over note collections.
+Corpus class for collections of Evernote notes, designed as a knowledge
+management abstraction over note collections.
 """
 
 from typing import Dict, List, Optional, Any
@@ -33,8 +31,11 @@ class Corpus:
         # Or specify custom path
         my_notes = enote.Corpus({"enex_path": "/path/to/backups"})
 
-        # Extract notes with metadata
-        note_dict = my_notes.read_notes(max_notes=100)
+        # Load notes into the corpus
+        my_notes.load(max_notes=100)
+
+        # Access the loaded notes
+        print(f"Loaded {len(my_notes.notes)} notes")
         ```
     """
 
@@ -52,20 +53,23 @@ class Corpus:
 
         # Extract and store the ENEX path for later use
         self.enex_path = enex_config.get("enex_path", DEFAULT_ENEX_PATH)
+
+        # Initialize empty notes collection
+        self.notes: Dict[str, Dict[str, Any]] = {}
+
         logger.info(f"Initialized Corpus with ENEX path: {self.enex_path}")
 
-    def read_notes(
-        self, max_notes: Optional[int] = None
-    ) -> Dict[str, Dict[str, Any]]:
+    def load(self, max_notes: Optional[int] = None) -> None:
         """
-        Read and parse notes from ENEX files.
+        Load and parse notes from ENEX files into the corpus.
 
         Args:
-            max_notes: Optional limit on number of notes to return
+            max_notes: Optional limit on number of notes to load
                       (useful for testing with large datasets)
 
-        Returns:
-            Dict mapping note_id -> {title, body, tags, metadata}
+        Note:
+            Populates self.notes with the parsed note data.
+            Each note is stored as: note_id -> {title, body, tags, metadata}
 
         Example:
             {
@@ -81,7 +85,8 @@ class Corpus:
         # Use the ENEX path configured during initialization
         enex_path = Path(self.enex_path).expanduser()
 
-        notes = {}
+        # Clear any existing notes
+        self.notes = {}
         note_count = 0
 
         # Process each ENEX file in the directory
@@ -96,21 +101,21 @@ class Corpus:
                 # Find all note elements
                 for note_elem in root.findall("note"):
                     if max_notes and note_count >= max_notes:
-                        return notes
+                        return
 
                     # Extract note data
                     note_data = self._parse_note_element(note_elem)
                     if note_data:
                         # Use a simple counter as note ID for now
                         note_id = f"note_{note_count:06d}"
-                        notes[note_id] = note_data
+                        self.notes[note_id] = note_data
                         note_count += 1
 
             except ET.ParseError as e:
                 logger.warning(f"Failed to parse {enex_file}: {e}")
                 continue
 
-        return notes
+        logger.info(f"Loaded {len(self.notes)} notes into corpus")
 
     def _parse_note_element(self, note_elem) -> Optional[Dict[str, Any]]:
         """Parse a single note element from ENEX."""
@@ -145,53 +150,6 @@ class Corpus:
         except Exception as e:
             logger.error(f"Error parsing note: {e}")
             return None
-
-    def write_new_note(
-        self,
-        title: str,
-        body: str,
-        tags: Optional[List[str]] = None,
-    ) -> str:
-        """
-        Create a new note.
-
-        Args:
-            title: Note title
-            body: Note content (Markdown or ENML)
-            tags: List of tag strings
-
-        Returns:
-            note_id: Unique identifier of created note
-        """
-        raise NotImplementedError("SDK implementation required")
-
-    def overwrite_note(
-        self, note_id: str, body: str, tags: Optional[List[str]] = None
-    ) -> bool:
-        """
-        Replace the content of an existing note.
-
-        Args:
-            note_id: Note to update
-            body: New content
-            tags: New tags (None to keep existing)
-
-        Returns:
-            True if successful, False otherwise
-        """
-        raise NotImplementedError("SDK implementation required")
-
-    def delete_note(self, note_id: str) -> bool:
-        """
-        Delete a note permanently.
-
-        Args:
-            note_id: Note to delete
-
-        Returns:
-            True if successful, False otherwise
-        """
-        raise NotImplementedError("SDK implementation required")
 
     # Future methods for graph operations
     def get_linked_notes(self, note_id: str) -> List[str]:

@@ -15,16 +15,16 @@ A Python utility for extracting and structuring Evernote note collections into G
 ```python
 import enote
 
-# Initialize with ENEX backup path (uses default: ~/tmp/evernote_backup)
-corpus = enote.Corpus({})
+# Initialize with default ENEX path
+corpus = enote.Corpus()
 # Or specify custom path:
-# corpus = enote.Corpus({"enex_path": enote.DEFAULT_ENEX_PATH})
+# corpus = enote.Corpus({"enex_path": "/path/to/backups"})
 
-# Extract structured notes (respects memory limits)
-notes = corpus.get_all_notes(max_notes=100)
+# Load notes into corpus (respects memory limits)
+corpus.load(max_notes=100)
 
-# Each note contains: title, body, tags, created, updated
-for note_id, note_data in notes.items():
+# Access the loaded notes
+for note_id, note_data in corpus.notes.items():
     print(f"Title: {note_data['title']}")
     print(f"Tags: {note_data['tags']}")
     print(f"Content: {note_data['body'][:200]}...")
@@ -62,6 +62,66 @@ for note_id, note_data in notes.items():
 ✅ **Test Coverage** - Verified with real note collection  
 🔄 **Content Cleaning** - ENML to plain text (in development)  
 🔄 **Export Formats** - JSON, Markdown, vector-ready (planned)
+
+## ⚡ Performance Considerations
+
+**File Processing Order**: Currently processes ENEX files in filesystem order (typically alphabetical). For large datasets with mixed file sizes, this may not be optimal.
+
+**TODO**: Consider implementing smart file ordering:
+- Process smaller files first for faster feedback during development
+- Sort by file size for predictable memory usage patterns  
+- Add progress indicators for large file processing (430MB+ files)
+- Consider implementing `ET.iterparse()` for truly lazy loading of massive files
+
+**Current Behavior**: Full DOM parsing via `ET.parse()` loads entire ENEX files into memory before processing. This works well for typical sizes but may need optimization for very large exports.
+
+## 🏗️ Architectural Considerations
+
+**Key Design Questions Identified**:
+
+1. **Hardcoded vs. Dynamic Attribute Extraction**
+   - *Current*: Manually extract `title`, `created`, `updated`, `tags`, `content`
+   - *Concern*: Brittle and may miss ENEX fields across different export formats
+   - *Recommendation*: Implement dynamic extraction that discovers all available attributes
+
+2. **Note ID Strategy & Linking**
+   - *Current*: Manual counter-based IDs (`note_000000`)
+   - *Concern*: Cannot resolve Evernote's internal note links and references
+   - *Recommendation*: Use ENEX GUID fields for note identification to preserve linking
+
+3. **Long-term RAG Architecture**
+   - *Current*: Simple dictionary storage in memory
+   - *Concern*: Scalability for vector search, metadata indexing, and graph traversal
+   - *Recommendation*: Plan for vector embeddings, link graphs, and hybrid search capabilities
+
+**Next Phase Priorities**:
+- [ ] Dynamic ENEX attribute discovery
+- [ ] GUID-based note identification
+- [ ] Link relationship extraction
+- [ ] Vector search foundation
+
+## 📋 Development TODOs
+
+### Environment Setup
+- [ ] Set up project-specific virtual environment (.venv in project root)
+- [ ] Document workspace environment setup best practices  
+- [ ] Move project-specific packages out of global VS_Code venv
+- [ ] Code workspace settings for Python interpreter
+- [ ] Modify workspace environment so src is in path
+- [ ] Add environment setup to README.md
+
+### Performance & Scalability
+- [ ] Smart ENEX file processing order (size-based)
+- [ ] Progress indicators for large file processing (430MB+ files)
+- [ ] Consider `ET.iterparse()` for lazy loading of massive files
+- [ ] Memory usage profiling and optimization
+
+### Core Functionality
+- [ ] Dynamic attribute extraction from ENEX elements
+- [ ] GUID-based note identification system
+- [ ] Note linking and relationship discovery
+- [ ] ENML content cleaning and conversion
+- [ ] Vector embedding preparation for RAG
 
 ---
 

@@ -57,16 +57,16 @@ class TestCorpusReadOperations:
         """Create a Corpus instance for testing."""
         return enote.Corpus({"enex_path": enote.DEFAULT_ENEX_PATH})
 
-    def test_read_notes_with_max_limit(self, corpus):
-        """Test that read_notes respects max_notes parameter."""
-        notes = corpus.read_notes(max_notes=5)
-        assert isinstance(notes, dict)
-        assert len(notes) <= 5
+    def test_load_with_max_limit(self, corpus):
+        """Test that load respects max_notes parameter."""
+        corpus.load(max_notes=5)
+        assert isinstance(corpus.notes, dict)
+        assert len(corpus.notes) <= 5
 
     # These tests validate expected data structure from ENEX parsing
     @pytest.mark.skip("TODO: Validate complete ENEX data structure")
-    def test_read_notes_returns_expected_format(self, corpus):
-        """Test that read_notes returns expected ENEX-parsed format."""
+    def test_load_returns_expected_format(self, corpus):
+        """Test that load populates notes with expected ENEX-parsed format."""
         # Will validate: {note_id: {title, body, tags, created, updated}}
         pass
 
