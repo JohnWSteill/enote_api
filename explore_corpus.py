@@ -5,6 +5,7 @@
 # %%
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path.cwd() / "src"))
 
 import enote
