@@ -7,48 +7,58 @@ designed as a knowledge management abstraction over note collections.
 
 from typing import Dict, List, Optional, Any
 import logging
-import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+# Import the default path constant
+from .constants import DEFAULT_ENEX_PATH
 
 logger = logging.getLogger(__name__)
 
 
 class Corpus:
     """
-    A collection of Evernote notes with graph-like relationships.
+    A collection of Evernote notes extracted from ENEX files.
 
-    Provides a clean, SDK-agnostic interface for CRUD operations on notes,
-    with support for tags, internal links, and metadata management.
+    Provides a clean interface for reading and extracting structured data
+    from Evernote ENEX exports, designed for GenAI and knowledge management.
 
     Example:
         ```python
         import enote
 
-        my_notes = enote.Corpus(credentials)
-        note_dict = my_notes.get_all_notes()  # {id: title, body, tags}
-        note = my_notes.get_note(note_id)
-        new_id = my_notes.write_new_note(body, tags)
+        # Use default ENEX path
+        my_notes = enote.Corpus()
+
+        # Or specify custom path
+        my_notes = enote.Corpus({"enex_path": "/path/to/backups"})
+
+        # Extract notes with metadata
+        note_dict = my_notes.read_notes(max_notes=100)
         ```
     """
 
-    def __init__(self, credentials: Dict[str, Any]):
+    def __init__(self, enex_config: Optional[Dict[str, Any]] = None):
         """
-        Initialize the Corpus with Evernote API credentials.
+        Initialize the Corpus with ENEX path configuration.
 
         Args:
-            credentials: Dictionary containing authentication info
-                        (format TBD based on SDK selection)
+            enex_config: Optional dictionary containing ENEX path configuration
+                        Format: {"enex_path": "/path/to/enex/files"}
+                        If None or enex_path missing, uses default path
         """
-        self.credentials = credentials
-        self._client = None  # Will be initialized with chosen SDK
-        logger.info("Initialized Corpus with credentials")
+        if enex_config is None:
+            enex_config = {}
 
-    def get_all_notes(
+        # Extract and store the ENEX path for later use
+        self.enex_path = enex_config.get("enex_path", DEFAULT_ENEX_PATH)
+        logger.info(f"Initialized Corpus with ENEX path: {self.enex_path}")
+
+    def read_notes(
         self, max_notes: Optional[int] = None
     ) -> Dict[str, Dict[str, Any]]:
         """
-        Retrieve all notes as a dictionary.
+        Read and parse notes from ENEX files.
 
         Args:
             max_notes: Optional limit on number of notes to return
@@ -68,9 +78,8 @@ class Corpus:
                 }
             }
         """
-        # Get the ENEX path from credentials
-        enex_path = self.credentials.get("enex_path", "~/tmp/evernote_backup")
-        enex_path = Path(enex_path).expanduser()
+        # Use the ENEX path configured during initialization
+        enex_path = Path(self.enex_path).expanduser()
 
         notes = {}
         note_count = 0
@@ -136,19 +145,6 @@ class Corpus:
         except Exception as e:
             logger.error(f"Error parsing note: {e}")
             return None
-
-    def get_note(self, note_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a specific note by ID.
-
-        Args:
-            note_id: Unique identifier for the note
-
-        Returns:
-            Note dictionary or None if not found
-            Format: {title, body, tags, created, updated, links}
-        """
-        raise NotImplementedError("SDK implementation required")
 
     def write_new_note(
         self,

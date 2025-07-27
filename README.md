@@ -15,8 +15,10 @@ A Python utility for extracting and structuring Evernote note collections into G
 ```python
 import enote
 
-# Initialize with ENEX backup path
-corpus = enote.Corpus({"enex_path": "~/tmp/evernote_backup"})
+# Initialize with ENEX backup path (uses default: ~/tmp/evernote_backup)
+corpus = enote.Corpus({})
+# Or specify custom path:
+# corpus = enote.Corpus({"enex_path": enote.DEFAULT_ENEX_PATH})
 
 # Extract structured notes (respects memory limits)
 notes = corpus.get_all_notes(max_notes=100)
@@ -76,7 +78,7 @@ for note_id, note_data in notes.items():
    evernote-backup init-db
    evernote-backup sync
    
-   # Export to ENEX files
+   # Export to ENEX files (this path becomes the default for enote)
    evernote-backup export ~/tmp/evernote_backup
    ```
 

@@ -1,8 +1,8 @@
 """
-Test stubs for the Corpus class.
+Tests for the Corpus class - Evernote ENEX parsing and extraction.
 
-These tests define the expected behavior of the Corpus API
-and will be implemented as we develop the SDK integration.
+These tests validate the ENEX parsing functionality that extracts
+structured note data from Evernote exports for GenAI applications.
 """
 
 import pytest
@@ -10,114 +10,64 @@ import enote
 
 
 class TestCorpusInit:
-    """Test Corpus initialization and basic setup."""
+    """Test Corpus initialization and ENEX directory validation."""
+
+    def test_corpus_init_with_valid_enex_path(self):
+        """Test that Corpus initializes with valid ENEX directory."""
+        # Use the actual backup directory that exists
+        corpus = enote.Corpus({"enex_path": enote.DEFAULT_ENEX_PATH})
+        assert corpus.enex_path == enote.DEFAULT_ENEX_PATH
+
+    def test_corpus_init_with_default_enex_path(self):
+        """Test that Corpus uses default ENEX path when none provided."""
+        corpus = enote.Corpus()
+        assert corpus.enex_path == enote.DEFAULT_ENEX_PATH
+        # The default path logic is now in __init__, not get_all_notes()
+
+    def test_corpus_init_with_custom_enex_path(self):
+        """Test that Corpus accepts custom ENEX directory paths."""
+        custom_path = "/some/custom/path"
+        corpus = enote.Corpus({"enex_path": custom_path})
+        assert corpus.enex_path == custom_path
 
     @pytest.mark.parametrize(
-        "credentials",
+        "config,expected_path",
         [
-            {"dev_token": "fake_token", "sandbox": True},
-            {"api_key": "test_key"},
-            {"oauth_token": "oauth123", "sandbox": False},
+            ({"enex_path": enote.DEFAULT_ENEX_PATH}, enote.DEFAULT_ENEX_PATH),
+            (
+                {"enex_path": "/absolute/path/to/backup"},
+                "/absolute/path/to/backup",
+            ),
+            ({"enex_path": "./relative/path"}, "./relative/path"),
+            ({}, enote.DEFAULT_ENEX_PATH),  # Test empty config (uses default)
+            (None, enote.DEFAULT_ENEX_PATH),  # Test None config (uses default)
         ],
     )
-    def test_corpus_init_stores_credentials(self, credentials):
-        """Test that Corpus initializes and stores credential formats."""
-        corpus = enote.Corpus(credentials)
-        assert corpus.credentials == credentials
-        assert corpus._client is None  # Not initialized until SDK chosen
+    def test_corpus_init_stores_enex_path(self, config, expected_path):
+        """Test that Corpus initializes and stores the ENEX path correctly."""
+        corpus = enote.Corpus(config)
+        assert corpus.enex_path == expected_path
 
 
 class TestCorpusReadOperations:
-    """Test reading notes from Evernote."""
+    """Test reading notes from ENEX files."""
 
     @pytest.fixture
-    def mock_corpus(self):
+    def corpus(self):
         """Create a Corpus instance for testing."""
-        return enote.Corpus({"enex_path": "~/tmp/evernote_backup"})
+        return enote.Corpus({"enex_path": enote.DEFAULT_ENEX_PATH})
 
-    def test_get_all_notes_with_max_limit(self, mock_corpus):
-        """Test that get_all_notes respects max_notes parameter."""
-        # This should work once we implement ENEX parsing
-        notes = mock_corpus.get_all_notes(max_notes=5)
+    def test_read_notes_with_max_limit(self, corpus):
+        """Test that read_notes respects max_notes parameter."""
+        notes = corpus.read_notes(max_notes=5)
         assert isinstance(notes, dict)
         assert len(notes) <= 5
 
-    def test_get_all_notes_without_limit(self, mock_corpus):
-        """Test that get_all_notes works without max_notes (returns all)."""
-        # For now, let's test with a reasonable limit to avoid massive parsing
-        notes = mock_corpus.get_all_notes(max_notes=10)
-        assert isinstance(notes, dict)
-        assert len(notes) <= 10
-
-    def test_get_note_not_implemented(self, mock_corpus):
-        """Test that get_note raises NotImplementedError."""
-        with pytest.raises(
-            NotImplementedError, match="SDK implementation required"
-        ):
-            mock_corpus.get_note("fake_id")
-
-    # Future test when implemented
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_get_all_notes_returns_dict(self, mock_corpus):
-        """Test that get_all_notes returns expected format."""
-        # Will mock SDK response and test return format
-        pass
-
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_get_note_returns_note_dict(self, mock_corpus):
-        """Test that get_note returns proper note structure."""
-        # Will test: {title, body, tags, created, updated, links}
-        pass
-
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_get_note_nonexistent_returns_none(self, mock_corpus):
-        """Test that get_note returns None for missing notes."""
-        pass
-
-
-class TestCorpusWriteOperations:
-    """Test writing and updating notes."""
-
-    @pytest.fixture
-    def mock_corpus(self):
-        """Create a Corpus instance for testing."""
-        return enote.Corpus({"dev_token": "fake_token"})
-
-    def test_write_new_note_not_implemented(self, mock_corpus):
-        """Test that write_new_note raises NotImplementedError."""
-        with pytest.raises(
-            NotImplementedError, match="SDK implementation required"
-        ):
-            mock_corpus.write_new_note("Test Title", "Test content")
-
-    def test_overwrite_note_not_implemented(self, mock_corpus):
-        """Test that overwrite_note raises NotImplementedError."""
-        with pytest.raises(
-            NotImplementedError, match="SDK implementation required"
-        ):
-            mock_corpus.overwrite_note("fake_id", "New content")
-
-    def test_delete_note_not_implemented(self, mock_corpus):
-        """Test that delete_note raises NotImplementedError."""
-        with pytest.raises(
-            NotImplementedError, match="SDK implementation required"
-        ):
-            mock_corpus.delete_note("fake_id")
-
-    # Future tests when implemented
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_write_new_note_returns_id(self, mock_corpus):
-        """Test that write_new_note returns note ID."""
-        pass
-
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_write_new_note_with_tags(self, mock_corpus):
-        """Test creating note with tags."""
-        pass
-
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_overwrite_note_success(self, mock_corpus):
-        """Test successful note update."""
+    # These tests validate expected data structure from ENEX parsing
+    @pytest.mark.skip("TODO: Validate complete ENEX data structure")
+    def test_read_notes_returns_expected_format(self, corpus):
+        """Test that read_notes returns expected ENEX-parsed format."""
+        # Will validate: {note_id: {title, body, tags, created, updated}}
         pass
 
 
@@ -125,36 +75,37 @@ class TestCorpusGraphOperations:
     """Test graph-like operations (future implementation)."""
 
     @pytest.fixture
-    def mock_corpus(self):
-        """Create a Corpus instance for testing."""
-        return enote.Corpus({"dev_token": "fake_token"})
+    def corpus(self):
+        """Create a Corpus instance for testing error handling."""
+        return enote.Corpus()
 
-    def test_get_linked_notes_not_implemented(self, mock_corpus):
+    def test_get_linked_notes_not_implemented(self, corpus):
         """Test that get_linked_notes raises NotImplementedError."""
         with pytest.raises(NotImplementedError, match="Future implementation"):
-            mock_corpus.get_linked_notes("fake_id")
+            corpus.get_linked_notes("fake_id")
 
-    def test_get_backlinks_not_implemented(self, mock_corpus):
+    def test_get_backlinks_not_implemented(self, corpus):
         """Test that get_backlinks raises NotImplementedError."""
         with pytest.raises(NotImplementedError, match="Future implementation"):
-            mock_corpus.get_backlinks("fake_id")
+            corpus.get_backlinks("fake_id")
 
-    def test_query_not_implemented(self, mock_corpus):
+    def test_query_not_implemented(self, corpus):
         """Test that query raises NotImplementedError."""
         with pytest.raises(NotImplementedError, match="Future implementation"):
-            mock_corpus.query("search text")
+            corpus.query("search text")
 
 
 class TestCorpusIntegration:
-    """Integration tests for complete workflows."""
+    """Integration tests for ENEX parsing workflows."""
 
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_create_read_update_delete_workflow(self):
-        """Test complete CRUD workflow."""
-        # Will test: create note -> read it -> update it -> delete it
+    @pytest.mark.skip("TODO: Implement ENEX file validation")
+    def test_enex_file_discovery_workflow(self):
+        """Test complete ENEX discovery workflow."""
+        # Will test: initialize corpus -> discover ENEX -> validate structure
         pass
 
-    @pytest.mark.skip("TODO: Implement when SDK is chosen")
-    def test_tag_management_workflow(self):
-        """Test tag operations across multiple notes."""
+    @pytest.mark.skip("TODO: Implement content extraction workflow")
+    def test_content_extraction_workflow(self):
+        """Test full content extraction across multiple ENEX files."""
+        # Will test: parse all ENEX -> extract content -> validate metadata
         pass

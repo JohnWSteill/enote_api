@@ -12,9 +12,10 @@ swapping between different Evernote API implementations.
 """
 
 from .corpus import Corpus
+from .constants import DEFAULT_ENEX_PATH
 
 __version__ = "0.1.0"
 __author__ = "John Steill"
 
 # Core module exports
-__all__ = ["Corpus"]
+__all__ = ["Corpus", "DEFAULT_ENEX_PATH"]
