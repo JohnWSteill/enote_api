@@ -107,12 +107,13 @@ class Corpus:
                     note_data = self._parse_note_element(note_elem)
                     if note_data:
                         # Add cleaned text version for RAG
-                        if 'content' in note_data:
-                            cleaned = self._clean_enml(note_data['content'])
-                            note_data['cleaned_text'] = cleaned
-                        
-                        # Use a simple counter as note ID for now
-                        note_id = f"note_{note_count:06d}"
+                        if "content" in note_data:
+                            cleaned = self._clean_enml(note_data["content"])
+                            note_data["cleaned_text"] = cleaned
+
+                        # Generate human-readable note ID from title
+                        title = note_data.get("title", "untitled")
+                        note_id = self._generate_note_id(title)
                         self.notes[note_id] = note_data
                         note_count += 1
 
@@ -151,77 +152,108 @@ class Corpus:
             logger.error(f"Error parsing note: {e}")
             return None
 
+    def _generate_note_id(self, title: str) -> str:
+        """
+        Generate human-readable note ID from title.
+        
+        Converts titles to URL-friendly slugs with deduplication.
+        
+        Args:
+            title: Note title to convert to ID
+            
+        Returns:
+            Human-readable note ID (e.g., "band_practice_checklist")
+        """
+        # Convert to lowercase and replace spaces/punctuation with underscores
+        slug = re.sub(r'[^\w\s-]', '', title.lower())
+        slug = re.sub(r'[-\s]+', '_', slug)
+        slug = slug.strip('_')
+        
+        # Handle empty or very short titles
+        if not slug or len(slug) < 3:
+            slug = "untitled_note"
+        
+        # Ensure uniqueness by adding counter if needed
+        base_slug = slug
+        counter = 1
+        
+        while slug in self.notes:
+            counter += 1
+            slug = f"{base_slug}_{counter:02d}"
+        
+        return slug
+
     def _clean_enml(self, enml_content: str) -> str:
         """
         Clean ENML content for RAG-ready text extraction.
-        
+
         Removes XML overhead while preserving semantic structure.
-        
+
         Args:
             enml_content: Raw ENML content from Evernote export
-            
+
         Returns:
             Clean text suitable for embeddings and RAG systems
         """
         if not enml_content or not enml_content.strip():
             return ""
-            
+
         try:
             # Remove XML declaration and DOCTYPE
-            content = re.sub(r'<\?xml[^>]*\?>', '', enml_content)
-            content = re.sub(r'<!DOCTYPE[^>]*>', '', content)
-            
+            content = re.sub(r"<\?xml[^>]*\?>", "", enml_content)
+            content = re.sub(r"<!DOCTYPE[^>]*>", "", content)
+
             # Remove en-note wrapper
-            content = re.sub(r'</?en-note[^>]*>', '', content)
-            
+            content = re.sub(r"</?en-note[^>]*>", "", content)
+
             # Convert structural elements to readable text
             # Lists: preserve structure with bullets/numbers
-            content = re.sub(r'<ul[^>]*>', '', content)
-            content = re.sub(r'</ul>', '\n', content)
-            content = re.sub(r'<ol[^>]*>', '', content)
-            content = re.sub(r'</ol>', '\n', content)
-            content = re.sub(r'<li[^>]*>', '• ', content)
-            content = re.sub(r'</li>', '\n', content)
-            
+            content = re.sub(r"<ul[^>]*>", "", content)
+            content = re.sub(r"</ul>", "\n", content)
+            content = re.sub(r"<ol[^>]*>", "", content)
+            content = re.sub(r"</ol>", "\n", content)
+            content = re.sub(r"<li[^>]*>", "• ", content)
+            content = re.sub(r"</li>", "\n", content)
+
             # Paragraphs and line breaks
-            content = re.sub(r'<div[^>]*>', '\n', content)
-            content = re.sub(r'</div>', '', content)
-            content = re.sub(r'<br[^>]*/?>', '\n', content)
-            content = re.sub(r'<p[^>]*>', '\n', content)
-            content = re.sub(r'</p>', '\n', content)
-            
+            content = re.sub(r"<div[^>]*>", "\n", content)
+            content = re.sub(r"</div>", "", content)
+            content = re.sub(r"<br[^>]*/?>", "\n", content)
+            content = re.sub(r"<p[^>]*>", "\n", content)
+            content = re.sub(r"</p>", "\n", content)
+
             # Preserve emphasis (convert to markdown-style)
-            content = re.sub(r'<b[^>]*>(.*?)</b>', r'**\1**', content)
-            content = re.sub(r'<i[^>]*>(.*?)</i>', r'*\1*', content)
-            strong_pattern = r'<strong[^>]*>(.*?)</strong>'
-            content = re.sub(strong_pattern, r'**\1**', content)
-            content = re.sub(r'<em[^>]*>(.*?)</em>', r'*\1*', content)
-            
+            content = re.sub(r"<b[^>]*>(.*?)</b>", r"**\1**", content)
+            content = re.sub(r"<i[^>]*>(.*?)</i>", r"*\1*", content)
+            strong_pattern = r"<strong[^>]*>(.*?)</strong>"
+            content = re.sub(strong_pattern, r"**\1**", content)
+            content = re.sub(r"<em[^>]*>(.*?)</em>", r"*\1*", content)
+
             # Links: extract just the text (URLs are often broken anyway)
-            content = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', content)
-            
+            content = re.sub(r"<a[^>]*>(.*?)</a>", r"\1", content)
+
             # Remove all other HTML/XML tags
-            content = re.sub(r'<[^>]+>', '', content)
-            
+            content = re.sub(r"<[^>]+>", "", content)
+
             # Decode HTML entities
-            content = content.replace('&lt;', '<')
-            content = content.replace('&gt;', '>')
-            content = content.replace('&amp;', '&')
-            content = content.replace('&quot;', '"')
-            content = content.replace('&#39;', "'")
-            
+            content = content.replace("&lt;", "<")
+            content = content.replace("&gt;", ">")
+            content = content.replace("&amp;", "&")
+            content = content.replace("&quot;", '"')
+            content = content.replace("&#39;", "'")
+
             # Clean up whitespace
             # Max 2 newlines
-            content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
-            content = re.sub(r'[ \t]+', ' ', content)  # Normalize spaces
+            content = re.sub(r"\n\s*\n\s*\n", "\n\n", content)
+            content = re.sub(r"[ \t]+", " ", content)  # Normalize spaces
             content = content.strip()
-            
+
             return content
-            
+
         except Exception as e:
             logger.warning(f"Failed to clean ENML content: {e}")
             # Fallback: at least strip basic tags
-            fallback = re.sub(r'<[^>]+>', '', enml_content)
+            fallback = re.sub(r"<[^>]+>", "", enml_content)
             return fallback.strip()
 
     # Future methods for graph operations

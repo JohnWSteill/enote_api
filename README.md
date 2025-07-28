@@ -41,11 +41,21 @@ for note_id, note_data in corpus.notes.items():
 ## 🏗️ Project Structure
 
 ```
-├── src/enote/         # Core extraction library
-├── notebooks/         # Data analysis and development examples
-├── tests/             # Unit and integration tests  
-├── requirements.txt   # Core dependencies
-└── README.md         # This file
+├── src/enote/              # Core extraction library  
+│   ├── corpus.py          # Main Corpus class with ENML cleaning
+│   ├── constants.py       # Configuration constants
+│   └── __init__.py        # Package initialization
+├── notebooks/             # Interactive development and analysis
+│   ├── corpus_exploration.ipynb    # Development playground
+│   ├── performance_analysis.ipynb  # Timing and optimization
+│   └── test_enex_parsing.ipynb     # ENEX format exploration
+├── tests/                 # Unit and integration tests  
+│   ├── test_corpus.py     # Core functionality tests
+│   ├── test_basic.py      # Project structure validation
+│   └── conftest.py        # Test configuration
+├── .vscode/               # VS Code workspace configuration
+├── requirements.txt       # Core dependencies
+└── README.md             # This file
 ```
 
 ## 🛠️ Development Environment
@@ -228,6 +238,62 @@ New terminal windows automatically:
 - [x] Phase 5: ENML Content Extraction & Cleaning (76-90% size reduction)
 - [ ] Phase 6: GenAI Export Formats (JSON, Markdown, Vector-ready)
 - [ ] Phase 7: BabyCoach MVP Integration
+
+## 🔖 Phase 6 Bookmark: RAG Export Formats
+
+**Status**: Ready to implement when GenAI learning progresses (Week 3-4 of bootcamp)
+
+### **Current RAG-Ready Data Structure:**
+```python
+# Your notes are already perfectly structured for RAG:
+{
+    "band_practice_checklist": {
+        "title": "Band Practice checklist",
+        "cleaned_text": "Musician AOF\n\nTASCAM\n2AA Batteries...",  # 76-90% smaller
+        "tags": ["music", "band"], 
+        "created": "2021-02-12",
+        "content": "<?xml...>"  # Original ENML preserved
+    }
+}
+```
+
+### **Standard RAG Export Formats:**
+
+**JSON Lines (.jsonl) - Most Common:**
+```python
+def export_for_rag(self) -> str:
+    """Export corpus in standard RAG format."""
+    rag_data = []
+    for note_id, note in self.notes.items():
+        rag_data.append({
+            "id": note_id,  # Human-readable: "band_practice_checklist" 
+            "text": note.get('cleaned_text', ''),
+            "metadata": {
+                "title": note.get('title', ''),
+                "tags": note.get('tag', []),
+                "created": note.get('created', ''),
+                "source": "evernote"
+            }
+        })
+    return '\n'.join(json.dumps(item) for item in rag_data)
+```
+
+**Vector Database Integration (Learn in Week 4-6):**
+```python
+def export_to_vectordb(self, collection_name: str):
+    """Export to Chroma/Pinecone/FAISS when you learn vector databases."""
+    # Implementation depends on your bootcamp's vector DB choice
+    pass
+```
+
+### **Why This Architecture Works:**
+- ✅ **Human-readable IDs**: Easy debugging (`band_practice_checklist` vs `note_000001`)
+- ✅ **Clean text**: 76-90% smaller embeddings, better semantic search
+- ✅ **Rich metadata**: Tags, dates, titles for filtering and context
+- ✅ **Original preserved**: ENML content available for special processing
+- ✅ **Standard format**: Works with any RAG system you'll learn
+
+**Next Steps**: Return here after learning vector embeddings and databases in bootcamp!
 
 ## 🛠️ Development Environment
 
