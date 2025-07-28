@@ -155,32 +155,32 @@ class Corpus:
     def _generate_note_id(self, title: str) -> str:
         """
         Generate human-readable note ID from title.
-        
+
         Converts titles to URL-friendly slugs with deduplication.
-        
+
         Args:
             title: Note title to convert to ID
-            
+
         Returns:
             Human-readable note ID (e.g., "band_practice_checklist")
         """
         # Convert to lowercase and replace spaces/punctuation with underscores
-        slug = re.sub(r'[^\w\s-]', '', title.lower())
-        slug = re.sub(r'[-\s]+', '_', slug)
-        slug = slug.strip('_')
-        
+        slug = re.sub(r"[^\w\s-]", "", title.lower())
+        slug = re.sub(r"[-\s]+", "_", slug)
+        slug = slug.strip("_")
+
         # Handle empty or very short titles
         if not slug or len(slug) < 3:
             slug = "untitled_note"
-        
+
         # Ensure uniqueness by adding counter if needed
         base_slug = slug
         counter = 1
-        
+
         while slug in self.notes:
             counter += 1
             slug = f"{base_slug}_{counter:02d}"
-        
+
         return slug
 
     def _clean_enml(self, enml_content: str) -> str:
