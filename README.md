@@ -27,7 +27,8 @@ corpus.load(max_notes=100)
 for note_id, note_data in corpus.notes.items():
     print(f"Title: {note_data['title']}")
     print(f"Tags: {note_data['tags']}")
-    print(f"Content: {note_data['body'][:200]}...")
+    print(f"Content: {note_data['content'][:200]}...")
+    print(f"Clean text: {note_data['cleaned_text'][:200]}...")
 ```
 
 ## 🎯 Use Cases
@@ -60,7 +61,7 @@ for note_id, note_data in corpus.notes.items():
 ✅ **Metadata Extraction** - Titles, tags, timestamps preserved  
 ✅ **Memory Management** - Configurable note limits for large datasets  
 ✅ **Test Coverage** - Verified with real note collection  
-🔄 **Content Cleaning** - ENML to plain text (in development)  
+✅ **Content Cleaning** - ENML to clean text with 76-90% size reduction
 🔄 **Export Formats** - JSON, Markdown, vector-ready (planned)
 
 ## ⚡ Performance Considerations
@@ -74,6 +75,31 @@ for note_id, note_data in corpus.notes.items():
 - Consider implementing `ET.iterparse()` for truly lazy loading of massive files
 
 **Current Behavior**: Full DOM parsing via `ET.parse()` loads entire ENEX files into memory before processing. This works well for typical sizes but may need optimization for very large exports.
+
+## 🚧 ENEX Format Limitations
+
+**Known Constraints** of the ENEX export format that affect migration capabilities:
+
+### **Data Loss During Export**
+- **Note Links**: Internal Evernote note links (`evernote:///view/...`) are **unrecoverable** from ENEX
+- **Notebook Structure**: All notes exported as flat list, original notebook organization lost
+- **Tag Hierarchy**: Hierarchical tag relationships flattened to simple tag lists
+- **Note History**: Version history and revision data not included in exports
+
+### **Resource Handling (Future Work)**
+- **Nested Elements**: Current implementation extracts flat attributes only
+- **Embedded Files**: `<resource>` elements (images, PDFs, attachments) not processed
+- **Base64 Content**: Binary data encoded in XML requires special handling
+- **MIME Types**: File type detection and extraction not implemented
+
+### **BabyCoach MVP Scope**
+**Current Focus**: Text content extraction for RAG implementation
+- ✅ **Title, content, tags, timestamps** - Core text data for knowledge base
+- ⏸️ **Images and attachments** - Nice-to-have for enhanced RAG, not blocking
+- ⏸️ **Note linking** - Potential future feature, not essential for MVP
+- ⏸️ **Notebook organization** - Can be reconstructed via tags and metadata
+
+**Design Philosophy**: Extract maximum value from available text content rather than attempting perfect Evernote recreation.
 
 ## 🏗️ Architectural Considerations
 
@@ -104,11 +130,11 @@ for note_id, note_data in corpus.notes.items():
 
 ### Environment Setup
 - [ ] Set up project-specific virtual environment (.venv in project root)
-- [ ] Document workspace environment setup best practices  
+- [x] Document workspace environment setup best practices  
 - [ ] Move project-specific packages out of global VS_Code venv
-- [ ] Code workspace settings for Python interpreter
-- [ ] Modify workspace environment so src is in path
-- [ ] Add environment setup to README.md
+- [x] Code workspace settings for Python interpreter
+- [x] Modify workspace environment so src is in path
+- [x] Add environment setup to README.md
 
 ### Performance & Scalability
 - [ ] Smart ENEX file processing order (size-based)
@@ -117,11 +143,18 @@ for note_id, note_data in corpus.notes.items():
 - [ ] Memory usage profiling and optimization
 
 ### Core Functionality
-- [ ] Dynamic attribute extraction from ENEX elements
+- [x] Dynamic attribute extraction from ENEX elements
+- [x] ENML content cleaning and conversion (76-90% size reduction)
 - [ ] GUID-based note identification system
-- [ ] Note linking and relationship discovery
-- [ ] ENML content cleaning and conversion
 - [ ] Vector embedding preparation for RAG
+
+### Future Enhancements (Post-MVP)
+- [ ] Nested element parsing for `<resource>` elements
+- [ ] Image and attachment extraction from base64 data
+- [ ] Broken link detection and reporting
+- [ ] Note relationship discovery via content analysis
+- [ ] Advanced ENML to Markdown conversion
+- [ ] Notebook structure reconstruction via metadata
 
 ---
 
@@ -152,13 +185,47 @@ for note_id, note_data in corpus.notes.items():
    pytest tests/
    ```
 
-## 📋 Development Status
+## � Development Environment Setup
+
+### **VS Code Workspace Configuration**
+
+The project includes optimized VS Code settings in `.vscode/settings.json`:
+
+- **Python Interpreter**: Auto-configured to use `~/venvs/VS_Code`
+- **Auto-activation**: Terminal automatically sources the virtual environment
+- **PYTHONPATH**: Automatically includes `src/` for imports
+- **Default Terminal**: Custom profile with venv pre-activated
+
+### **Quick Setup Checklist**
+
+1. **Virtual Environment**: Use existing `~/venvs/VS_Code` or create project-specific
+2. **Dependencies**: `pip install -r requirements.txt`
+3. **ENEX Data**: Export to `~/tmp/evernote_backup` (or configure custom path)
+4. **VS Code**: Open workspace folder - environment auto-activates
+5. **Test**: Run `pytest tests/` to verify setup
+
+### **Import Path Configuration**
+
+With the workspace settings, you can import directly:
+```python
+import enote  # Works automatically
+corpus = enote.Corpus()  # No PYTHONPATH needed
+```
+
+### **Terminal Auto-Activation**
+
+New terminal windows automatically:
+- Activate the virtual environment
+- Set working directory to project root  
+- Configure PYTHONPATH for development
+
+## �📋 Development Status
 
 - [x] Phase 1: Environment Setup
 - [x] Phase 2: Project Bootstrap  
 - [x] Phase 3: ENEX Parsing Implementation
 - [x] Phase 4: Core Read Operations (4,874 notes successfully parsed)
-- [ ] Phase 5: ENML Content Extraction & Cleaning
+- [x] Phase 5: ENML Content Extraction & Cleaning (76-90% size reduction)
 - [ ] Phase 6: GenAI Export Formats (JSON, Markdown, Vector-ready)
 - [ ] Phase 7: BabyCoach MVP Integration
 

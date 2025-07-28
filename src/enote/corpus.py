@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Any
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import re
 
 # Import the default path constant
 from .constants import DEFAULT_ENEX_PATH
@@ -51,8 +52,9 @@ class Corpus:
         if enex_config is None:
             enex_config = {}
 
-        # Extract and store the ENEX path for later use
-        self.enex_path = enex_config.get("enex_path", DEFAULT_ENEX_PATH)
+        # Extract and store the ENEX path for later use (expanded)
+        raw_path = enex_config.get("enex_path", DEFAULT_ENEX_PATH)
+        self.enex_path = Path(raw_path).expanduser()
 
         # Initialize empty notes collection
         self.notes: Dict[str, Dict[str, Any]] = {}
@@ -83,14 +85,12 @@ class Corpus:
             }
         """
         # Use the ENEX path configured during initialization
-        enex_path = Path(self.enex_path).expanduser()
-
         # Clear any existing notes
         self.notes = {}
         note_count = 0
 
         # Process each ENEX file in the directory
-        for enex_file in enex_path.glob("*.enex"):
+        for enex_file in self.enex_path.glob("*.enex"):
             logger.info(f"Processing {enex_file.name}")
 
             # Parse the ENEX file
@@ -106,6 +106,11 @@ class Corpus:
                     # Extract note data
                     note_data = self._parse_note_element(note_elem)
                     if note_data:
+                        # Add cleaned text version for RAG
+                        if 'content' in note_data:
+                            cleaned = self._clean_enml(note_data['content'])
+                            note_data['cleaned_text'] = cleaned
+                        
                         # Use a simple counter as note ID for now
                         note_id = f"note_{note_count:06d}"
                         self.notes[note_id] = note_data
@@ -118,38 +123,106 @@ class Corpus:
         logger.info(f"Loaded {len(self.notes)} notes into corpus")
 
     def _parse_note_element(self, note_elem) -> Optional[Dict[str, Any]]:
-        """Parse a single note element from ENEX."""
+        """Parse all available attributes from ENEX note element."""
         try:
-            title = note_elem.find("title")
-            title_text = title.text if title is not None else "Untitled"
+            note_data = {}
 
-            created = note_elem.find("created")
-            created_text = created.text if created is not None else ""
+            # Extract all child elements dynamically
+            for child in note_elem:
+                element_name = child.tag
 
-            updated = note_elem.find("updated")
-            updated_text = updated.text if updated is not None else ""
+                # Handle multiple elements with same tag (like <tag> elements)
+                if element_name in note_data:
+                    # Convert to list if not already
+                    if not isinstance(note_data[element_name], list):
+                        note_data[element_name] = [note_data[element_name]]
+                    note_data[element_name].append(child.text or "")
+                else:
+                    # First occurrence of this element
+                    note_data[element_name] = child.text or ""
 
-            # Extract tags
-            tags = []
-            for tag_elem in note_elem.findall("tag"):
-                if tag_elem.text:
-                    tags.append(tag_elem.text)
+            # Ensure we have at least a title (fallback for malformed notes)
+            if "title" not in note_data:
+                note_data["title"] = "Untitled"
 
-            # Extract content (simplified for now)
-            content_elem = note_elem.find("content")
-            content = content_elem.text if content_elem is not None else ""
-
-            return {
-                "title": title_text,
-                "body": content,
-                "tags": tags,
-                "created": created_text,
-                "updated": updated_text,
-            }
+            return note_data
 
         except Exception as e:
             logger.error(f"Error parsing note: {e}")
             return None
+
+    def _clean_enml(self, enml_content: str) -> str:
+        """
+        Clean ENML content for RAG-ready text extraction.
+        
+        Removes XML overhead while preserving semantic structure.
+        
+        Args:
+            enml_content: Raw ENML content from Evernote export
+            
+        Returns:
+            Clean text suitable for embeddings and RAG systems
+        """
+        if not enml_content or not enml_content.strip():
+            return ""
+            
+        try:
+            # Remove XML declaration and DOCTYPE
+            content = re.sub(r'<\?xml[^>]*\?>', '', enml_content)
+            content = re.sub(r'<!DOCTYPE[^>]*>', '', content)
+            
+            # Remove en-note wrapper
+            content = re.sub(r'</?en-note[^>]*>', '', content)
+            
+            # Convert structural elements to readable text
+            # Lists: preserve structure with bullets/numbers
+            content = re.sub(r'<ul[^>]*>', '', content)
+            content = re.sub(r'</ul>', '\n', content)
+            content = re.sub(r'<ol[^>]*>', '', content)
+            content = re.sub(r'</ol>', '\n', content)
+            content = re.sub(r'<li[^>]*>', '• ', content)
+            content = re.sub(r'</li>', '\n', content)
+            
+            # Paragraphs and line breaks
+            content = re.sub(r'<div[^>]*>', '\n', content)
+            content = re.sub(r'</div>', '', content)
+            content = re.sub(r'<br[^>]*/?>', '\n', content)
+            content = re.sub(r'<p[^>]*>', '\n', content)
+            content = re.sub(r'</p>', '\n', content)
+            
+            # Preserve emphasis (convert to markdown-style)
+            content = re.sub(r'<b[^>]*>(.*?)</b>', r'**\1**', content)
+            content = re.sub(r'<i[^>]*>(.*?)</i>', r'*\1*', content)
+            strong_pattern = r'<strong[^>]*>(.*?)</strong>'
+            content = re.sub(strong_pattern, r'**\1**', content)
+            content = re.sub(r'<em[^>]*>(.*?)</em>', r'*\1*', content)
+            
+            # Links: extract just the text (URLs are often broken anyway)
+            content = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', content)
+            
+            # Remove all other HTML/XML tags
+            content = re.sub(r'<[^>]+>', '', content)
+            
+            # Decode HTML entities
+            content = content.replace('&lt;', '<')
+            content = content.replace('&gt;', '>')
+            content = content.replace('&amp;', '&')
+            content = content.replace('&quot;', '"')
+            content = content.replace('&#39;', "'")
+            
+            # Clean up whitespace
+            # Max 2 newlines
+            content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
+            content = re.sub(r'[ \t]+', ' ', content)  # Normalize spaces
+            content = content.strip()
+            
+            return content
+            
+        except Exception as e:
+            logger.warning(f"Failed to clean ENML content: {e}")
+            # Fallback: at least strip basic tags
+            fallback = re.sub(r'<[^>]+>', '', enml_content)
+            return fallback.strip()
 
     # Future methods for graph operations
     def get_linked_notes(self, note_id: str) -> List[str]:
