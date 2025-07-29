@@ -295,6 +295,10 @@ def export_to_vectordb(self, collection_name: str):
 
 **Next Steps**: Return here after learning vector embeddings and databases in bootcamp!
 
+## 🔒 Security Note
+
+**Personal Data Protection**: The corpus contains your private notes. Export files are automatically saved to `~/Desktop` and excluded from git via `.gitignore` to prevent accidental commits of personal data.
+
 ## 🛠️ Development Environment
 
 - Python 3.13.5 (Homebrew on macOS Apple Silicon)

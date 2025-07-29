@@ -29,13 +29,13 @@ def test_enml_cleaning():
             reduction = ((len(original) - len(cleaned)) / len(original)) * 100
             print(f"Size reduction: {reduction:.1f}%")
 
-        print(f"\nOriginal preview:")
+        print("\nOriginal preview:")
         print(original[:300] + "..." if len(original) > 300 else original)
 
-        print(f"\nCleaned text:")
+        print("\nCleaned text:")
         print(cleaned[:500] + "..." if len(cleaned) > 500 else cleaned)
 
-        print(f"\n" + "=" * 60)
+        print("\n" + "=" * 60)
 
 
 if __name__ == "__main__":

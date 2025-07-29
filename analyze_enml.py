@@ -41,13 +41,13 @@ def analyze_enml_complexity():
 
         # Show first note as example
         if note_id == list(corpus.notes.keys())[0]:
-            print(f"\nFirst note content preview:")
+            print("\nFirst note content preview:")
             print(f"Title: {note.get('title', 'No title')}")
             print(f"Content length: {len(content)} chars")
-            print(f"Content preview:")
+            print("Content preview:")
             print(content[:500] + "..." if len(content) > 500 else content)
 
-    print(f"\n=== MARKUP ANALYSIS ===")
+    print("\n=== MARKUP ANALYSIS ===")
     print(f"Total content: {total_content_length:,} characters")
     print(f"Total markup: {total_markup_length:,} characters")
 
@@ -55,7 +55,7 @@ def analyze_enml_complexity():
         markup_percentage = (total_markup_length / total_content_length) * 100
         print(f"Markup overhead: {markup_percentage:.1f}%")
 
-    print(f"\nMost common tags:")
+    print("\nMost common tags:")
     for tag, count in sorted(
         tag_counts.items(), key=lambda x: x[1], reverse=True
     )[:10]:

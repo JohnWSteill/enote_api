@@ -4,6 +4,7 @@ management abstraction over note collections.
 """
 
 from typing import Dict, List, Optional, Any
+import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -127,6 +128,7 @@ class Corpus:
         """Parse all available attributes from ENEX note element."""
         try:
             note_data = {}
+            note_data["tag"] = []
 
             # Extract all child elements dynamically
             for child in note_elem:
@@ -145,7 +147,7 @@ class Corpus:
             # Ensure we have at least a title (fallback for malformed notes)
             if "title" not in note_data:
                 note_data["title"] = "Untitled"
-
+            note_data["tags"] = note_data.pop("tag")
             return note_data
 
         except Exception as e:
@@ -255,6 +257,44 @@ class Corpus:
             # Fallback: at least strip basic tags
             fallback = re.sub(r"<[^>]+>", "", enml_content)
             return fallback.strip()
+
+    def export_for_rag(self, output_file: Optional[str] = None) -> str:
+        """
+        Export corpus in standard RAG format (JSON Lines).
+
+        Args:
+            output_file: Optional path to write JSON file.
+                        If None, returns string.
+
+        Returns:
+            JSON string in RAG format
+        """
+        rag_data = []
+
+        for note_id, note in self.notes.items():
+            rag_entry = {
+                "id": note_id,
+                "text": note.get("cleaned_text", ""),
+                "metadata": {
+                    "title": note.get("title", ""),
+                    "tags": note.get("tags", []),
+                    "created": note.get("created", ""),
+                    "updated": note.get("updated", ""),
+                    "source": "evernote",
+                },
+            }
+            rag_data.append(rag_entry)
+
+        # Convert to pretty JSON
+        json_output = json.dumps(rag_data, indent=2, ensure_ascii=False)
+
+        # Write to file if specified
+        if output_file:
+            output_path = Path(output_file)
+            output_path.write_text(json_output, encoding="utf-8")
+            logger.info(f"Exported {len(rag_data)} notes to {output_path}")
+
+        return json_output
 
     # Future methods for graph operations
     def get_linked_notes(self, note_id: str) -> List[str]:

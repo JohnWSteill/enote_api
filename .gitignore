@@ -72,6 +72,10 @@ evernote_auth.txt
 dev_token.txt
 api_credentials.json
 
+# Exported note data (contains private content - specific patterns)
+*_export.*
+evernote_rag_export.*
+
 # Logs
 *.log
 logs/
@@ -79,3 +83,8 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# RAG Export Files (contain private note content - specific patterns only)
+*rag_export*.json
+evernote_export*.json
+notes_export*.json

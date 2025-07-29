@@ -21,7 +21,7 @@ def test_readable_ids():
         title = note_data.get("title", "No title")
         print(f"  {note_id} -> {title}")
 
-    print(f"\nSample note structure:")
+    print("\nSample note structure:")
     if corpus.notes:
         first_id = list(corpus.notes.keys())[0]
         first_note = corpus.notes[first_id]
