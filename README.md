@@ -145,6 +145,10 @@ for note_id, note_data in corpus.notes.items():
 - [x] Code workspace settings for Python interpreter
 - [x] Modify workspace environment so src is in path
 - [x] Add environment setup to README.md
+- [ ] **Implement pre-commit hook to clear notebook outputs**
+  - Use `python3 -m nbconvert --ClearOutputPreprocessor.enabled=True --inplace *.ipynb`
+  - Prevents voluminous git diffs from notebook output cells
+  - Keeps git history focused on actual code changes
 
 ### Performance & Scalability
 - [ ] Smart ENEX file processing order (size-based)
@@ -290,7 +294,7 @@ def export_to_vectordb(self, collection_name: str):
 - ✅ **Human-readable IDs**: Easy debugging (`band_practice_checklist` vs `note_000001`)
 - ✅ **Clean text**: 76-90% smaller embeddings, better semantic search
 - ✅ **Rich metadata**: Tags, dates, titles for filtering and context
-- ✅ **Original preserved**: ENML content available for special processing
+- ✅ **Original preserved**: ENML content availeble for special processing
 - ✅ **Standard format**: Works with any RAG system you'll learn
 
 **Next Steps**: Return here after learning vector embeddings and databases in bootcamp!
